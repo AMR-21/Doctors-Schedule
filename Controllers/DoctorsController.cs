@@ -121,33 +121,33 @@ namespace DoctorsSchedule.Controllers
             return NoContent();
         }
 
-        // POST: api/Doctors/5/Availability
+
+        // PUT: api/Doctors/5/Availabilities
         [HttpPost("{id}/availabilities")]
-        public async Task<IActionResult> AddDoctorAvailability(int id, AvailabilityDTO availabilityDTO)
+        public async Task<IActionResult> UpdateDoctorAvailabilities(int id, List<AvailabilityDTO> availabilityDTOs)
         {
-            // Validate the day
-            if (!IsValidDay(availabilityDTO.day!))
+
+            // Validate each day in the list
+            foreach (var availabilityDTO in availabilityDTOs)
             {
-                return BadRequest("Invalid day provided.");
+                if (!IsValidDay(availabilityDTO.day!))
+                {
+                    return BadRequest("Invalid day provided.");
+                }
             }
 
-            try
+
+
+            // Remove old availabilities
+            await _doctorRepo.DeleteAvailabilitiesAsync(id);
+
+            // Add new availabilities
+            foreach (var availabilityDTO in availabilityDTOs)
             {
                 await _doctorRepo.AddDoctorAvailabilityAsync(id, availabilityDTO);
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!_doctorRepo.DoctorExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
 
-            return CreatedAtAction("GetDoctor", new { id = id }, availabilityDTO);
+            return CreatedAtAction("GetDoctor", new { id }, availabilityDTOs);
         }
 
         // Helper method to validate the day

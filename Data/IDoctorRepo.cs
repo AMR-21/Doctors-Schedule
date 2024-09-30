@@ -12,6 +12,8 @@ namespace DoctorsSchedule.Data
     Task AddDoctorAsync(Doctor doctor);
     Task UpdateDoctorAvailabilityAsync(int id, int availabilityId, AvailabilityDTO availabilityDTO);
     Task AddDoctorAvailabilityAsync(int id, AvailabilityDTO availabilityDTO);
+
+    Task DeleteAvailabilitiesAsync(int id);
     bool DoctorExists(int id);
   }
 }

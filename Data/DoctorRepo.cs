@@ -73,13 +73,18 @@ namespace DoctorsSchedule.Data
         return;
       }
 
-      var existingAvailability = doctor.Availabilities?.FirstOrDefault(a => a.Id == availabilityDTO.id && a.Id == availabilityId);
+      // Ensure we are checking against the correct availabilityId
+      var existingAvailability = doctor.Availabilities?.FirstOrDefault(a => a.Id == availabilityId);
       if (existingAvailability == null)
       {
         return;
       }
 
-      existingAvailability.DayId = DaysMap.Days.FirstOrDefault(d => d.Value == availabilityDTO.day).Key;
+      // Update the fields based on the DTO
+      if (!string.IsNullOrEmpty(availabilityDTO.day))
+      {
+        existingAvailability.DayId = DaysMap.Days.FirstOrDefault(d => d.Value == availabilityDTO.day).Key;
+      }
 
       if (!string.IsNullOrEmpty(availabilityDTO.Start))
       {
@@ -90,6 +95,7 @@ namespace DoctorsSchedule.Data
         existingAvailability.End = TimeSpan.Parse(availabilityDTO.End);
       }
 
+      // Mark the existing availability as modified
       _context.Entry(existingAvailability).State = EntityState.Modified;
       await _context.SaveChangesAsync();
     }
@@ -114,6 +120,19 @@ namespace DoctorsSchedule.Data
       await _context.SaveChangesAsync();
     }
 
+
+    public async Task DeleteAvailabilitiesAsync(int id)
+    {
+      var doctor = await _context.Doctors.Include(d => d.Availabilities).FirstOrDefaultAsync(d => d.Id == id);
+      if (doctor == null)
+      {
+        return;
+      }
+
+      doctor.Availabilities?.Clear();
+      _context.Entry(doctor).State = EntityState.Modified;
+      await _context.SaveChangesAsync();
+    }
     public bool DoctorExists(int id)
     {
       return _context.Doctors.Any(e => e.Id == id);
